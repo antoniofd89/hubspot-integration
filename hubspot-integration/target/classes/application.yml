@@ -6,9 +6,13 @@ spring:
           hubspot:
             client-id: 6d006f53-0478-448a-924e-1cd8ad9909da
             client-secret: 0bb9359c-18bf-49f5-ad3a-5c72de9cdc59
-            scope: contacts
-            redirect-uri: http://localhost:8080/oauth/callback
+            scope: crm.objects.contacts.read
+            authorization-grant-type: authorization-code
+            redirect-uri: http://localhost&scope=oauth%20crm.objects.companies.read
         provider:
           hubspot:
             authorization-uri: https://app.hubspot.com/oauth/authorize
             token-uri: https://api.hubapi.com/oauth/v1/token
+  logging:
+    level:
+      br.com.dias: DEBUG
