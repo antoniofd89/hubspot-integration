@@ -10,13 +10,8 @@ import java.util.logging.Logger;
 public class RestHubService {
     private Logger logger = Logger.getLogger(RestHubService.class.getName());
 
-    private final OAuth2AuthorizedClientManager authorizedClientManager;
-
-    public RestHubService(OAuth2AuthorizedClientManager authorizedClientManager) {
-        this.authorizedClientManager = authorizedClientManager;
-    }
-
     public void authenticate(String authorizationCode){
       logger.info("Código de autorização recebido: " +  authorizationCode);
     }
+
 }

@@ -1,5 +1,8 @@
 package com.br.dias.hubspot_integration.controller;
 
+import com.br.dias.hubspot_integration.DTO.RestHubTokenResponseDTO;
+import com.br.dias.hubspot_integration.service.RestHubTokenStoreService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
@@ -29,6 +32,9 @@ public class RestHubController {
     @Value("${security.oauth2.client.registration.hubspot.client-secret:client-secret}")
     private String clientSecret;
 
+    @Autowired
+    private RestHubTokenStoreService tokenStore;
+
     @GetMapping("/authorize/")
     public ResponseEntity<Void> authorize() {
 
@@ -57,10 +63,18 @@ public class RestHubController {
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(formulario, headers);
 
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                "https://api.hubapi.com/oauth/v1/token", request, String.class
+        ResponseEntity<RestHubTokenResponseDTO> response = restTemplate.postForEntity(
+                "https://api.hubapi.com/oauth/v1/token", request, RestHubTokenResponseDTO.class
         );
 
+        if(response.getStatusCode().is2xxSuccessful() && response.getBody() != null){
+            RestHubTokenResponseDTO tokenDTO = response.getBody();
+            tokenStore.saveToken(
+                    tokenDTO.getAccessToken(),
+                    tokenDTO.getRefreshToken(),
+                    Integer.parseInt(tokenDTO.getExpiresIn())
+            );
+        }
         return ResponseEntity.ok("Access Token Response: \n" + response.getBody());
     }
 }
