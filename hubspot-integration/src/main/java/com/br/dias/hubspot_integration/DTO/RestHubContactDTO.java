@@ -7,6 +7,17 @@ public class RestHubContactDTO {
     private String lastname;
     private String phone;
 
+    public RestHubContactDTO() {
+    }
+
+    public RestHubContactDTO(String accessToken, String email, String firstname, String lastname, String phone) {
+        this.accessToken = accessToken;
+        this.email = email;
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.phone = phone;
+    }
+
     public String getAccessToken() {
         return accessToken;
     }
