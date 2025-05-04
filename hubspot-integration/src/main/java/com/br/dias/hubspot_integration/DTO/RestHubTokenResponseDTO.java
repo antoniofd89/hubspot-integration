@@ -1,9 +1,19 @@
 package com.br.dias.hubspot_integration.DTO;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class RestHubTokenResponseDTO {
+
+    @JsonProperty("access_token")
     private String accessToken;
+
+    @JsonProperty("refresh_token")
     private String refreshToken;
+
+    @JsonProperty("expires_in")
     private String expiresIn;
+
+    @JsonProperty("token_type")
     private String tokenType;
 
     public String getAccessToken() {
@@ -36,5 +46,15 @@ public class RestHubTokenResponseDTO {
 
     public void setTokenType(String tokenType) {
         this.tokenType = tokenType;
+    }
+
+    @Override
+    public String toString() {
+        return "RestHubTokenResponseDTO{" +
+                "accessToken='" + accessToken + '\'' +
+                ", refreshToken='" + refreshToken + '\'' +
+                ", expiresIn='" + expiresIn + '\'' +
+                ", tokenType='" + tokenType + '\'' +
+                '}';
     }
 }

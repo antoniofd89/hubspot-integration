@@ -1,5 +1,6 @@
 package com.br.dias.hubspot_integration.service;
 
+import com.br.dias.hubspot_integration.exception.InvalidOauthTokenAuthenticationException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -21,7 +22,8 @@ public class RestHubTokenStoreService {
 
     public String getAccessToken() {
         if (isTokenExpired()) {
-            throw new IllegalStateException("Access Token Expired");
+            logger.warning("Tentaiva de uso de token expirado.");
+            throw new InvalidOauthTokenAuthenticationException("O token de acesso expirou. Faça uma nova autenticação");
         }
         return accessToken;
     }

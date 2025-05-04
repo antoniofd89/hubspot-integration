@@ -1,7 +1,10 @@
 package com.br.dias.hubspot_integration.controller;
 
 import com.br.dias.hubspot_integration.DTO.RestHubTokenResponseDTO;
+import com.br.dias.hubspot_integration.Utils.OauthStateCache;
+import com.br.dias.hubspot_integration.Utils.OauthStateValidator;
 import com.br.dias.hubspot_integration.service.RestHubTokenStoreService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -20,36 +23,45 @@ import java.net.URI;
 @RequestMapping("/oauth")
 public class RestHubController {
 
-    @Value("${security.oauth2.client.registration.hubspot.client-id:client-id}")
-    private String clientId = "client-id";
+    @Value("${spring.security.oauth2.client.registration.hubspot.client-id:}")
+    private String clientId;
 
-    @Value("${security.oauth2.client.registration.hubspot.scope:scope}")
-    private String scope = "scope";
+    @Value("${spring.security.oauth2.client.registration.hubspot.scope:}")
+    private String scope;
 
-    @Value("${security.oauth2.client.registration.hubspot.redirect-uri:redirect-uri}")
-    private String redirectUri = "redirect-uri";
+    @Value("${spring.security.oauth2.client.registration.hubspot.redirect-uri:}")
+    private String redirectUri;
 
-    @Value("${security.oauth2.client.registration.hubspot.client-secret:client-secret}")
+    @Value("${spring.security.oauth2.client.registration.hubspot.client-secret:}")
     private String clientSecret;
 
     @Autowired
     private RestHubTokenStoreService tokenStore;
 
     @GetMapping("/authorize/")
-    public ResponseEntity<Void> authorize() {
+    public ResponseEntity<Void> authorize(HttpServletRequest request) {
+        String sessionId = request.getSession().getId();
+        String state = OauthStateCache.generateAndStoreState(sessionId);
 
         String hubspotUrl = UriComponentsBuilder
                 .fromHttpUrl("https://app.hubspot.com/oauth/authorize")
                 .queryParam("client_id", clientId)
                 .queryParam("redirect_uri", redirectUri)
                 .queryParam("scope", scope)
+                .queryParam("state", state)
                 .build()
                 .toUriString();
         return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(hubspotUrl)).build();
     }
 
     @GetMapping("/callback")
-    public ResponseEntity<String> callback(@RequestParam String code) {
+    public ResponseEntity<RestHubTokenResponseDTO> callback(@RequestParam String code,
+                                                            @RequestParam String state,
+                                                            HttpServletRequest requestSession) {
+
+        String sessionId = requestSession.getSession().getId();
+        OauthStateValidator.validateStateOrThrow(sessionId, state);
+
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -67,14 +79,15 @@ public class RestHubController {
                 "https://api.hubapi.com/oauth/v1/token", request, RestHubTokenResponseDTO.class
         );
 
-        if(response.getStatusCode().is2xxSuccessful() && response.getBody() != null){
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
             RestHubTokenResponseDTO tokenDTO = response.getBody();
             tokenStore.saveToken(
                     tokenDTO.getAccessToken(),
                     tokenDTO.getRefreshToken(),
                     Integer.parseInt(tokenDTO.getExpiresIn())
             );
+            return ResponseEntity.ok(tokenDTO);
         }
-        return ResponseEntity.ok("Access Token Response: \n" + response.getBody());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 }
