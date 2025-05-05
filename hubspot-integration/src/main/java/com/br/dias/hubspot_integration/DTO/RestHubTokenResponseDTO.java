@@ -16,6 +16,15 @@ public class RestHubTokenResponseDTO {
     @JsonProperty("token_type")
     private String tokenType;
 
+    public RestHubTokenResponseDTO() {
+    }
+
+    public RestHubTokenResponseDTO(String accessToken, String refreshToken, String expiresIn) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+        this.expiresIn = expiresIn;
+    }
+
     public String getAccessToken() {
         return accessToken;
     }

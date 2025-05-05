@@ -5,7 +5,6 @@ import com.br.dias.hubspot_integration.Utils.OauthStateCache;
 import com.br.dias.hubspot_integration.Utils.OauthStateValidator;
 import com.br.dias.hubspot_integration.service.RestHubTokenStoreService;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
@@ -35,8 +34,16 @@ public class RestHubController {
     @Value("${spring.security.oauth2.client.registration.hubspot.client-secret:}")
     private String clientSecret;
 
-    @Autowired
-    private RestHubTokenStoreService tokenStore;
+    private final RestHubTokenStoreService tokenStore;
+
+    private final RestTemplate restTemplate;
+
+
+    public RestHubController(RestHubTokenStoreService tokenStore, RestTemplate restTemplate) {
+        this.tokenStore = tokenStore;
+        this.restTemplate = restTemplate;
+    }
+
 
     @GetMapping("/authorize/")
     public ResponseEntity<Void> authorize(HttpServletRequest request) {
@@ -62,7 +69,6 @@ public class RestHubController {
         String sessionId = requestSession.getSession().getId();
         OauthStateValidator.validateStateOrThrow(sessionId, state);
 
-        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
