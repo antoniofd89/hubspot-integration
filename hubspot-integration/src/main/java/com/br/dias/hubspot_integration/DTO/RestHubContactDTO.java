@@ -1,5 +1,7 @@
 package com.br.dias.hubspot_integration.DTO;
 
+import java.util.Objects;
+
 public class RestHubContactDTO {
     private String accessToken;
     private String email;
@@ -56,5 +58,17 @@ public class RestHubContactDTO {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        RestHubContactDTO that = (RestHubContactDTO) o;
+        return Objects.equals(accessToken, that.accessToken) && Objects.equals(email, that.email) && Objects.equals(firstname, that.firstname) && Objects.equals(lastname, that.lastname) && Objects.equals(phone, that.phone);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(accessToken, email, firstname, lastname, phone);
     }
 }
